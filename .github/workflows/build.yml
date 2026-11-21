@@ -9,12 +9,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Unzip project
         run: |
-          unzip -o UltraCam_v3.zip -d UltraCam
+          ZIP=$(find . -maxdepth 2 -iname 'UltraCam_v3.zip' -not -path './UltraCam/*' | head -n 1)
+          if [ -z "$ZIP" ]; then
+            echo "UltraCam_v3.zip repo me nahi mili. Files:"; ls -la
+            exit 1
+          fi
+          echo "Using $ZIP"
+          rm -rf UltraCam
+          unzip -q -o "$ZIP" -d UltraCam
           ls -la UltraCam
 
       - name: Setup Java 17
@@ -27,7 +33,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-          build-root-directory: UltraCam
 
       - name: Build debug APK
         working-directory: UltraCam
